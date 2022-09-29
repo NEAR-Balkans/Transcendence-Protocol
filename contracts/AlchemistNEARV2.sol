@@ -1,4 +1,5 @@
-pragma solidity ^0.8.11;
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma solidity 0.8.11;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
@@ -21,7 +22,7 @@ import "./libraries/Limiters.sol";
 
 /// @title  AlchemistV2
 /// @author Alchemix Finance
-contract AlchemistV2 is IAlchemistV2, Initializable, Multicall, Mutex {
+contract AlchemistNEARV2 is IAlchemistV2, Initializable, Multicall, Mutex {
     using Limiters for Limiters.LinearGrowthLimiter;
     using Sets for Sets.AddressSet;
 
@@ -46,9 +47,9 @@ contract AlchemistV2 is IAlchemistV2, Initializable, Multicall, Mutex {
     uint256 public constant BPS = 10000;
 
     /// @notice The scalar used for conversion of integral numbers to fixed point numbers. Fixed point numbers in this
-    ///         implementation have 18 decimals of resolution, meaning that 1 is represented as 1e18, 0.5 is
-    ///         represented as 5e17, and 2 is represented as 2e18.
-    uint256 public constant FIXED_POINT_SCALAR = 1e18;
+    ///         implementation have 24 decimals of resolution, meaning that 1 is represented as 1e24, 0.5 is
+    ///         represented as 5e23, and 2 is represented as 2e24.
+    uint256 public constant FIXED_POINT_SCALAR = 1e24;
 
     /// @inheritdoc IAlchemistV2Immutables
     string public constant override version = "2.2.7";

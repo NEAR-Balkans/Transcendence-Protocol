@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { BigNumber, BigNumberish, Wallet } from "ethers";
-import { network, ethers, waffle, upgrades } from "hardhat";
+import { network, ethers, waffle } from "hardhat";
 import {
   AlchemicTokenV2,
   AlchemicTokenV1,
@@ -16,7 +16,6 @@ import {
   formatUnits,
   solidityPack,
 } from "ethers/lib/utils";
-import { ecsign } from "ethereumjs-util";
 import { mineBlocks } from "../utils/helpers";
 
 interface TokenFixture {

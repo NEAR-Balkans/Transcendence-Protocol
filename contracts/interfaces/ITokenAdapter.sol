@@ -19,7 +19,7 @@ interface ITokenAdapter {
     function underlyingToken() external view returns (address);
 
     /// @notice Gets the number of underlying tokens that a single whole yield token is redeemable for.
-    ///
+    ///         The price returned is divided by 10^10 to scale down the result to the decimals of the cToken
     /// @return The price.
     function price() external view returns (uint256);
 

@@ -3,7 +3,6 @@ import { solidity } from "ethereum-waffle";
 import { ethers, upgrades, waffle } from "hardhat";
 import {
   BigNumber,
-  BigNumberish,
   ContractFactory,
   Signer,
   utils,
@@ -30,6 +29,7 @@ import {
   increaseTime,
 } from "../utils/helpers";
 import { parseUnits, TransactionDescription } from "ethers/lib/utils";
+import { BigNumberish } from "ethers/node_modules/@ethersproject/abstract-signer/node_modules/@ethersproject/bignumber";
 
 const { parseEther, formatEther, hexlify } = utils;
 
@@ -71,22 +71,22 @@ async function tokenAdapterFixture(): Promise<TokenAdapterFixture> {
   )) as TestERC20;
 
   const yieldTokenFactory = await ethers.getContractFactory("TestYieldToken");
-  const yieldToken = await yieldTokenFactory.deploy(underlyingToken.address);
-  const yieldToken_b = await yieldTokenFactory.deploy(underlyingToken.address);
-  const yieldToken6 = await yieldTokenFactory.deploy(underlyingToken6.address);
+  const yieldToken = (await yieldTokenFactory.deploy(underlyingToken.address)) as TestYieldToken;
+  const yieldToken_b = (await yieldTokenFactory.deploy(underlyingToken.address)) as TestYieldToken;
+  const yieldToken6 = (await yieldTokenFactory.deploy(underlyingToken6.address)) as TestYieldToken;
 
   const yieldTokenAdapterFactory = await ethers.getContractFactory(
     "TestYieldTokenAdapter"
   );
-  const tokenAdapter = await yieldTokenAdapterFactory.deploy(
+  const tokenAdapter = (await yieldTokenAdapterFactory.deploy(
     yieldToken.address
-  );
-  const tokenAdapter_b = await yieldTokenAdapterFactory.deploy(
+  )) as TestYieldTokenAdapter;
+  const tokenAdapter_b = (await yieldTokenAdapterFactory.deploy(
     yieldToken_b.address
-  );
-  const tokenAdapter6 = await yieldTokenAdapterFactory.deploy(
+  )) as TestYieldTokenAdapter;
+  const tokenAdapter6 = (await yieldTokenAdapterFactory.deploy(
     yieldToken6.address
-  );
+  )) as TestYieldTokenAdapter;
 
   return {
     underlyingToken,
@@ -96,19 +96,19 @@ async function tokenAdapterFixture(): Promise<TokenAdapterFixture> {
     yieldToken6,
     tokenAdapter,
     tokenAdapter_b,
-    tokenAdapter6,
+    tokenAdapter6
   };
 }
 
 async function alchemixFixture([
-  deployer,
-  admin,
-  sentinel,
-  rewards,
-  minter,
-  keeper,
-  user,
-]: Wallet[]): Promise<AlchemixFixture> {
+                                 deployer,
+                                 admin,
+                                 sentinel,
+                                 rewards,
+                                 minter,
+                                 keeper,
+                                 user
+                               ]: Wallet[]): Promise<AlchemixFixture> {
   const alchemicTokenFactory = await ethers.getContractFactory(
     "AlchemicTokenV2"
   );
@@ -126,7 +126,7 @@ async function alchemixFixture([
     yieldToken6,
     tokenAdapter,
     tokenAdapter_b,
-    tokenAdapter6,
+    tokenAdapter6
   } = await tokenAdapterFixture();
 
   const transmuterBufferFactory = await ethers.getContractFactory(
@@ -163,8 +163,8 @@ async function alchemixFixture([
         mintingLimitMaximum: parseUnits("1000000", "ether"),
         mintingLimitBlocks: "1000",
         mintingLimitMinimum: parseUnits("100000", "ether"),
-        whitelist: whitelist.address,
-      },
+        whitelist: whitelist.address
+      }
     ],
     { unsafeAllow: ["delegatecall", "constructor"] }
   )) as AlchemistV2;
@@ -182,7 +182,7 @@ async function alchemixFixture([
     repayLimitMinimum: parseUnits("100000", "ether"),
     liquidationLimitMaximum: parseUnits("1000000", "ether"),
     liquidationLimitBlocks: 1000,
-    liquidationLimitMinimum: parseUnits("100000", "ether"),
+    liquidationLimitMinimum: parseUnits("100000", "ether")
   });
   await alchemist
     .connect(admin)
@@ -193,7 +193,7 @@ async function alchemixFixture([
     repayLimitMinimum: BigNumber.from(10).pow(6).mul(100000),
     liquidationLimitMaximum: BigNumber.from(10).pow(6).mul(1000000),
     liquidationLimitBlocks: 1000,
-    liquidationLimitMinimum: BigNumber.from(10).pow(6).mul(100000),
+    liquidationLimitMinimum: BigNumber.from(10).pow(6).mul(100000)
   });
   await alchemist
     .connect(admin)
@@ -203,7 +203,7 @@ async function alchemixFixture([
     adapter: tokenAdapter.address,
     maximumLoss: 1,
     maximumExpectedValue: parseEther("1000000"),
-    creditUnlockBlocks: 1,
+    creditUnlockBlocks: 1
   });
 
   await alchemist.connect(admin).setYieldTokenEnabled(yieldToken.address, true);
@@ -212,7 +212,7 @@ async function alchemixFixture([
     adapter: tokenAdapter_b.address,
     maximumLoss: 1,
     maximumExpectedValue: parseEther("1000000"),
-    creditUnlockBlocks: 1,
+    creditUnlockBlocks: 1
   });
 
   await alchemist
@@ -223,7 +223,7 @@ async function alchemixFixture([
     adapter: tokenAdapter6.address,
     maximumLoss: 1,
     maximumExpectedValue: parseEther("1000000"),
-    creditUnlockBlocks: 1,
+    creditUnlockBlocks: 1
   });
 
   await alchemist
@@ -311,7 +311,7 @@ async function alchemixFixture([
     transmuterDai,
     transmuterUsdc,
     transmuterBuffer,
-    whitelist,
+    whitelist
   };
 }
 
@@ -353,7 +353,7 @@ describe("Transmuter Buffer", () => {
       rewards,
       minter,
       keeper,
-      user,
+      user
     ]);
   });
 
@@ -372,7 +372,7 @@ describe("Transmuter Buffer", () => {
       transmuterDai,
       transmuterUsdc,
       transmuterBuffer,
-      whitelist,
+      whitelist
     } = await loadFixture(alchemixFixture));
   });
 
@@ -425,18 +425,18 @@ describe("Transmuter Buffer", () => {
           underlyingToken.address,
           transmuterBuffer.address
         )) as TransmuterMock;
-    })
+    });
 
     it("reverts if underlyingToken is not the same underlying token supported by the transmuter", async () => {
-      await expect(transmuterBuffer.connect(admin).setTransmuter(underlyingToken6.address, newTransmuterDai.address)).revertedWith("IllegalArgument()")
-    })
+      await expect(transmuterBuffer.connect(admin).setTransmuter(underlyingToken6.address, newTransmuterDai.address)).revertedWith("IllegalArgument()");
+    });
 
     it("sets the transmuter", async () => {
-      await transmuterBuffer.connect(admin).setTransmuter(underlyingToken.address, newTransmuterDai.address)
+      await transmuterBuffer.connect(admin).setTransmuter(underlyingToken.address, newTransmuterDai.address);
       const newTransmuterAddress = await transmuterBuffer.transmuter(underlyingToken.address);
       expect(newTransmuterAddress).equal(newTransmuterDai.address);
-    })
-  })
+    });
+  });
 
   describe("onERC20Received()", () => {
     const depositAmt = parseEther("100");
@@ -510,6 +510,21 @@ describe("Transmuter Buffer", () => {
         .liquidate(yieldToken.address, mintAmt, mintAmt);
       const exchangedAmtDai = await transmuterDai.totalExchanged();
       expect(exchangedAmtDai).equal(parseEther("10"));
+    });
+
+    it("flushes funds to the amo if the flag is set", async () => {
+      const receiverFactory = await ethers.getContractFactory("TestErc20Receiver");
+      const receiver = await receiverFactory.deploy();
+      const startBal = await underlyingToken.balanceOf(receiver.address);
+      await transmuterBuffer.connect(admin).setAmo(underlyingToken.address, receiver.address);
+      await transmuterBuffer.connect(admin).setDivertToAmo(underlyingToken.address, true);
+      await alchemist
+        .connect(minter)
+        .liquidate(yieldToken.address, mintAmt, mintAmt);
+      const exchangedAmtDai = await transmuterDai.totalExchanged();
+      expect(exchangedAmtDai).equal(0);
+      const endBal = await underlyingToken.balanceOf(receiver.address);
+      expect(endBal.sub(startBal)).equal(mintAmt);
     });
   });
 
@@ -638,34 +653,40 @@ describe("Transmuter Buffer", () => {
     });
 
     it("reverts if there is not enough flow available", async () => {
+      const minAmtDai1 = liqAmtDai1.mul("999999999999999999").div(parseEther("1"));
       await alchemist
         .connect(minter)
-        .liquidate(yieldToken.address, liqAmtDai1, liqAmtDai1);
+        .liquidate(yieldToken.address, liqAmtDai1, minAmtDai1);
+      const minAmtUsdc = liqAmtUsdc.mul("999999999999999999").div(parseEther("1"));
       await alchemist
         .connect(minter)
-        .liquidate(yieldToken6.address, liqAmtUsdc, liqAmtUsdc);
+        .liquidate(yieldToken6.address, liqAmtUsdc, minAmtUsdc);
+      const minAmtDai2 = liqAmtDai2.mul("999999999999999999").div(parseEther("1"));
       await alchemist
         .connect(minter)
-        .liquidate(yieldToken_b.address, liqAmtDai2, liqAmtDai2);
+        .liquidate(yieldToken_b.address, liqAmtDai2, minAmtDai2);
       await expect(
         transmuterUsdc.connect(minter).claim(liqAmtUsdc, minter.address)
       ).revertedWith("IllegalArgument()");
     });
 
     it("reverts if there is not enough buffered collateral available", async () => {
+      const minAmtDai1 = liqAmtDai1.mul("999999999999999999").div(parseEther("1"));
       await alchemist
         .connect(minter)
-        .liquidate(yieldToken.address, liqAmtDai1, liqAmtDai1);
+        .liquidate(yieldToken.address, liqAmtDai1, minAmtDai1);
+      const minAmtUsdc = liqAmtUsdc.mul("999999999999999999").div(parseEther("1"));
       await alchemist
         .connect(minter)
-        .liquidate(yieldToken6.address, liqAmtUsdc, liqAmtUsdc);
+        .liquidate(yieldToken6.address, liqAmtUsdc, minAmtUsdc);
+      const minAmtDai2 = liqAmtDai2.mul("999999999999999999").div(parseEther("1"));
       await alchemist
         .connect(minter)
-        .liquidate(yieldToken_b.address, liqAmtDai2, liqAmtDai2);
+        .liquidate(yieldToken_b.address, liqAmtDai2, minAmtDai2);
       await increaseTime(waffle.provider, 1000);
       await alchemist
         .connect(minter)
-        .liquidate(yieldToken6.address, liqAmtUsdc, liqAmtUsdc);
+        .liquidate(yieldToken6.address, liqAmtUsdc, minAmtUsdc);
       await expect(
         transmuterUsdc.connect(minter).claim(liqAmtUsdc.mul(10), minter.address)
       ).revertedWith("IllegalArgument()");
@@ -681,15 +702,18 @@ describe("Transmuter Buffer", () => {
         );
 
       await increaseTime(waffle.provider, 10);
+      const minAmtDai1 = liqAmtDai1.mul("999999999999999999").div(parseEther("1"));
       await alchemist
         .connect(minter)
-        .liquidate(yieldToken.address, liqAmtDai1, liqAmtDai1);
+        .liquidate(yieldToken.address, liqAmtDai1, minAmtDai1);
+      const minAmtUsdc = liqAmtUsdc.mul("999999999999999999").div(parseEther("1"));
       await alchemist
         .connect(minter)
-        .liquidate(yieldToken6.address, liqAmtUsdc, liqAmtUsdc);
+        .liquidate(yieldToken6.address, liqAmtUsdc, minAmtUsdc);
+      const minAmtDai2 = liqAmtDai2.mul("999999999999999999").div(parseEther("1"));
       await alchemist
         .connect(minter)
-        .liquidate(yieldToken_b.address, liqAmtDai2, liqAmtDai2);
+        .liquidate(yieldToken_b.address, liqAmtDai2, minAmtDai2);
 
       const bal = await underlyingToken.balanceOf(transmuterBuffer.address);
       const exchanged = await transmuterBuffer.currentExchanged(
@@ -725,15 +749,18 @@ describe("Transmuter Buffer", () => {
         );
 
       await increaseTime(waffle.provider, 1000);
+      const minAmtDai1 = liqAmtDai1.mul("999999999999999999").div(parseEther("1"));
       await alchemist
         .connect(minter)
-        .liquidate(yieldToken.address, liqAmtDai1, liqAmtDai1);
+        .liquidate(yieldToken.address, liqAmtDai1, minAmtDai1);
+      const minAmtUsdc = liqAmtUsdc.mul("999999999999999999").div(parseEther("1"));
       await alchemist
         .connect(minter)
-        .liquidate(yieldToken6.address, liqAmtUsdc, liqAmtUsdc);
+        .liquidate(yieldToken6.address, liqAmtUsdc, minAmtUsdc);
+      const minAmtDai2 = liqAmtDai2.mul("999999999999999999").div(parseEther("1"));
       await alchemist
         .connect(minter)
-        .liquidate(yieldToken_b.address, liqAmtDai2, liqAmtDai2);
+        .liquidate(yieldToken_b.address, liqAmtDai2, minAmtDai2);
 
       const balBefore = await underlyingToken.balanceOf(
         transmuterBuffer.address
@@ -957,9 +984,9 @@ describe("Transmuter Buffer", () => {
         const totalSupply2 = await yieldToken_b.totalSupply();
         const totalSupply6 = await yieldToken6.totalSupply();
 
-        const minAmtOut1 = depositAmtDai1.div(totalSupply1)
-        const minAmtOut2 = depositAmtDai2.div(totalSupply2)
-        const minAmtOut6 = depositAmtUsdc.div(totalSupply6)
+        const minAmtOut1 = depositAmtDai1.div(totalSupply1);
+        const minAmtOut2 = depositAmtDai2.div(totalSupply2);
+        const minAmtOut6 = depositAmtUsdc.div(totalSupply6);
 
         await alchemist.connect(admin).harvest(yieldToken.address, minAmtOut1.sub(minAmtOut1.div(10000)));
         await alchemist.connect(admin).harvest(yieldToken_b.address, minAmtOut2.sub(minAmtOut2.div(10000)));
@@ -1273,8 +1300,8 @@ describe("Transmuter Buffer", () => {
             mintingLimitMaximum: parseUnits("1000000", "ether"),
             mintingLimitBlocks: "1000",
             mintingLimitMinimum: parseUnits("100000", "ether"),
-            whitelist: whitelist.address,
-          },
+            whitelist: whitelist.address
+          }
         ],
         { unsafeAllow: ["delegatecall", "constructor"] }
       )) as AlchemistV2;
@@ -1358,7 +1385,7 @@ describe("Transmuter Buffer", () => {
     });
 
     describe("local balance > available flow", () => {
-      let beforeBal;
+      let beforeBal: any;
 
       beforeEach(async () => {
         await increaseTime(waffle.provider, 49);
@@ -1384,7 +1411,7 @@ describe("Transmuter Buffer", () => {
 
     describe("local balance < available flow", () => {
       const transferAmt = parseEther("100");
-      let beforeBal;
+      let beforeBal: BigNumberish;
 
       beforeEach(async () => {
         await increaseTime(waffle.provider, 20);
