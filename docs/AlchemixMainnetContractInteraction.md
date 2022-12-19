@@ -1,7 +1,3 @@
-Almanac  
-
-You need to enable JavaScript to run this app.
-
 ## Alchemix Mainnet Contract Interaction
 
 1.  Go to remix [https://remix.ethereum.org/](https://remix.ethereum.org/)

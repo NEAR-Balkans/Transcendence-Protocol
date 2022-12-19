@@ -1,7 +1,3 @@
-Almanac  
-
-You need to enable JavaScript to run this app.
-
 ## Transcendence finance USN strategy
 
   

@@ -1,9 +1,4 @@
-Almanac  
-
-You need to enable JavaScript to run this app.
-
 # Alchemix Documentation
-
   
 
 *   AlchemistV2 [link](./Alchemist)
